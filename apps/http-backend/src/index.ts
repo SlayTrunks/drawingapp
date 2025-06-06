@@ -3,11 +3,12 @@ import {PrismaClient } from "@repo/db/client";
 import {jwtsecret,signupSchema,signinSchema} from "@repo/backend-common/client"
 import jwt from "jsonwebtoken"
 import { middleware } from "./middleware";
-
+import cors from "cors"
 const app = express()
 
 const prisma = new PrismaClient()
 app.use(express.json());
+app.use(cors())
 app.post("/signup",async(req,res)=>{
         const body =  signupSchema.safeParse(req.body); 
         if(!body.success){
@@ -72,7 +73,54 @@ app.post("/room",middleware,async(req,res)=>{
     res.json({roomId:room.id})
     } catch (error) {
     res.json({msg:"already exists room with this name"})    
+    console.log(error)
     }
 })
+app.get("/chats/:roomId",async(req,res)=>{
+    try {
+        
+    const roomId = Number(req.params.roomId);
+
+    const messages = await prisma.chat.findMany({
+    where:{
+    roomId:roomId
+    },
+    take:50, //shows only 50 messages
+    orderBy: {
+        id:"desc"  //Order of showing message is previous to recent
+    }
+    })
+
+    res.json(messages)
+    } catch (error) {
+        console.log(error)
+    res.json({msg:"something went wrong in /clat/:roomId"})    
+    }
+})
+app.get("/room/:slug",async(req,res)=>{
+    try {
+        
+    const slug = (req.params.slug);
+
+    const room = await prisma.room.findMany({
+    where:{
+    slug:slug
+    },
+    })
+
+    res.json(room)
+    } catch (error) {
+        console.log(error)
+    res.json({msg:"something went wrong in /room/:slug"})    
+    }
+})
+// Get user's rooms
+app.get("/user/rooms", middleware, async (req, res) => {
+  const rooms = await prisma.room.findMany({
+    where: { adminId: req.userId },
+  });
+  res.json(rooms);
+});
+
 app.listen(3000)
 
