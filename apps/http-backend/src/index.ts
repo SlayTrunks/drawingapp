@@ -85,7 +85,6 @@ app.get("/chats/:roomId",async(req,res)=>{
     where:{
     roomId:roomId
     },
-    take:50, //shows only 50 messages
     orderBy: {
         id:"desc"  //Order of showing message is previous to recent
     }
@@ -122,5 +121,5 @@ app.get("/user/rooms", middleware, async (req, res) => {
   res.json(rooms);
 });
 
-app.listen(3000)
+app.listen(3005)
 
